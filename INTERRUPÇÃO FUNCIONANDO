@@ -46,7 +46,7 @@ uint32_t tempo_ultimo_botao = 0;
 volatile uint32_t current_period = 1425; // Valor inicial: 107ms com prescaler de 7200
 volatile uint32_t tempo_ms = 0;          // Valor convertido para
 #define BASE_PERIOD 1425 // corresponde a 107ms
-#define MAX_STEPS 5
+#define MAX_STEPS 6
 #define MIN_PERIOD (BASE_PERIOD)
 #define MAX_PERIOD (BASE_PERIOD * MAX_STEPS)
 int i = 0;
@@ -104,42 +104,40 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 while (1)
 {
-
-
-    HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13); // Pisca LED
-    HAL_Delay(42);
+    HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13); // Pisca o LED conectado ao PC13 (inverte o estado)
+    HAL_Delay(42); // Aguarda 42 ms (tempo do piscar)
 
     // PB5 - Aumenta o tempo
-    if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_5) == GPIO_PIN_RESET) {
-        HAL_Delay(50);
-        if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_5) == GPIO_PIN_RESET) {
-            if (current_period + BASE_PERIOD <= MAX_PERIOD) {
-                current_period += BASE_PERIOD;
-                tempo_ms = current_period / 10;
+    if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_5) == GPIO_PIN_RESET) { // Verifica se o botão PB5 está pressionado
+        HAL_Delay(50); // Delay para eliminar bouncing (ruído do botão)
+        if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_5) == GPIO_PIN_RESET) { // Confirma que o botão continua pressionado
+            if (current_period + BASE_PERIOD <= MAX_PERIOD) { // Garante que não ultrapasse o valor máximo permitido
+                current_period += BASE_PERIOD; // Aumenta o período atual
+                tempo_ms = current_period / 10; // Converte para milissegundos (dividindo por 10)
 
-                __HAL_TIM_DISABLE(&htim3);
-                __HAL_TIM_SET_AUTORELOAD(&htim3, current_period);
-                __HAL_TIM_SET_COUNTER(&htim3, 0);
-                __HAL_TIM_ENABLE(&htim3);
+                __HAL_TIM_DISABLE(&htim3); // Desativa o Timer 3
+                __HAL_TIM_SET_AUTORELOAD(&htim3, current_period); // Atualiza o valor do ARR (período)
+                __HAL_TIM_SET_COUNTER(&htim3, 0); // Reinicia o contador do timer
+                __HAL_TIM_ENABLE(&htim3); // Reativa o Timer 3 com o novo valor
             }
-            while (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_5) == GPIO_PIN_RESET);
+            while (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_5) == GPIO_PIN_RESET); // Espera o botão ser solto
         }
     }
 
     // PB4 - Diminui o tempo
-    if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_4) == GPIO_PIN_RESET) {
-        HAL_Delay(50);
-        if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_4) == GPIO_PIN_RESET) {
-            if (current_period - BASE_PERIOD >= MIN_PERIOD) {
-                current_period -= BASE_PERIOD;
-                tempo_ms = current_period / 10;
+    if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_4) == GPIO_PIN_RESET) { // Verifica se o botão PB4 está pressionado
+        HAL_Delay(50); // Delay para evitar bouncing
+        if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_4) == GPIO_PIN_RESET) { // Confirma que o botão ainda está pressionado
+            if (current_period - BASE_PERIOD >= MIN_PERIOD) { // Garante que não vá abaixo do valor mínimo permitido
+                current_period -= BASE_PERIOD; // Diminui o período atual
+                tempo_ms = current_period / 10; // Atualiza o tempo em milissegundos
 
-                __HAL_TIM_DISABLE(&htim3);
-                __HAL_TIM_SET_AUTORELOAD(&htim3, current_period);
-                __HAL_TIM_SET_COUNTER(&htim3, 0);
-                __HAL_TIM_ENABLE(&htim3);
+                __HAL_TIM_DISABLE(&htim3); // Desativa o Timer 3
+                __HAL_TIM_SET_AUTORELOAD(&htim3, current_period); // Atualiza o valor do ARR (período)
+                __HAL_TIM_SET_COUNTER(&htim3, 0); // Reinicia o contador do timer
+                __HAL_TIM_ENABLE(&htim3); // Reativa o Timer 3 com o novo valor
             }
-            while (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_4) == GPIO_PIN_RESET);
+            while (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_4) == GPIO_PIN_RESET); // Espera o botão ser solto
         }
     }
 }
@@ -356,8 +354,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     if (htim->Instance == TIM3)
     {
         // Verifica se o botão BT1 (PB3) está pressionado (nível lógico baixo)
-        if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_3) == GPIO_PIN_RESET)
-        {
+      //  if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_3) == GPIO_PIN_RESET)
+       // {
             // Incrementa o contador (5 bits: 0 a 31)
             contador = (contador + 1) % 32;
 
@@ -367,7 +365,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
             HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, (contador & (1 << 2)) ? GPIO_PIN_SET : GPIO_PIN_RESET);
             HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, (contador & (1 << 3)) ? GPIO_PIN_SET : GPIO_PIN_RESET);
             HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, (contador & (1 << 4)) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-        }
+      //  }
     }
 }
 /* USER CODE END 4 */
