@@ -116,7 +116,7 @@ int main(void)
 	      int leds = 0;
 
 	      if (read > 50) {
-	          leds = (read - 50) / 798;  // 3990/5 ≈ 798
+	          leds = (read - 50) / 700;  // Intervalo menor para facilitar acendimento do LED5
 	          if (leds > 5) leds = 5;    // Limite máximo de LEDs
 	      }
 
